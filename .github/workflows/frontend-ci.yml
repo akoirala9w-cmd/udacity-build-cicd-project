@@ -1,11 +1,6 @@
-name: Frontend CI Pipeline
+name: Frontend Continuous Integration 
 
 on:
-  push:
-    branches:  
-      - main
-    paths:
-      - 'starter/frontend/**'
   pull_request:
     branches:
       - main
@@ -24,17 +19,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: starter/frontend/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-
+        
+      - name: Setup Environment
+        uses: ./.github/actions/setup-frontend
+    
       - name: Run Linter
         run: npm run lint
   
@@ -48,16 +36,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: starter/frontend/package-lock.json
-      
-      - name: Install dependencies
-        run: npm ci
+        
+      - name: Setup Environment
+        uses: ./.github/actions/setup-frontend
       
       - name: Run Tests
         run: npm test
@@ -73,16 +54,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: starter/frontend/package-lock.json
-      
-      - name: Install dependencies
-        run: npm ci
+        
+      - name: Setup Environment
+        uses: ./.github/actions/setup-frontend
       
       - name: Build Application
         run: docker build --build-arg=REACT_APP_MOVIE_API_URL=http://localhost:5000 --tag=mp-frontend:latest .
