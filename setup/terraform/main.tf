@@ -252,6 +252,31 @@ data "aws_iam_policy_document" "assume_role_policy" {
   }
 }
 
+################
+# EKS Add-ons
+################
+
+resource "aws_eks_addon" "vpc_cni" {
+  cluster_name = aws_eks_cluster.main.name
+  addon_name   = "vpc-cni"
+}
+
+resource "aws_eks_addon" "kube_proxy" {
+  cluster_name = aws_eks_cluster.main.name
+  addon_name   = "kube-proxy"
+}
+
+resource "aws_eks_addon" "coredns" {
+  cluster_name = aws_eks_cluster.main.name
+  addon_name   = "coredns"
+
+  # Crucial: CoreDNS needs running nodes to schedule its pods. 
+  # If you don't add this dependency, Terraform will hang forever trying 
+  # to install the add-on before the node group even exists.
+  depends_on = [aws_eks_node_group.main]
+}
+
+
 ######################
 # CodeBuild Resources
 ######################
