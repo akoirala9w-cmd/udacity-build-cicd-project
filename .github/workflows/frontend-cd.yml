@@ -63,9 +63,6 @@ jobs:
         
       - name: Setup Environment
         uses: ./.github/actions/setup-frontend
-      
-      - name: Build Application
-        run: docker build --build-arg=REACT_APP_MOVIE_API_URL=http://localhost:5000 --tag=mp-frontend:latest .
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -73,6 +70,27 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
+
+      - name: Update Kubeconfig
+        run: aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name ${{ env.AWS_EKS_CLUSTER_NAME }}
+
+      # resolve backend URL
+      - name: Resolve Backend API URL
+        id: resolve-url
+        run: |
+          # Attempt to extract the LoadBalancer hostname. Suppress errors if the service doesn't exist yet.
+          BACKEND_HOST=$(kubectl get svc backend -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || echo "")
+          
+          if [ -z "$BACKEND_HOST" ]; then
+            echo "Backend LoadBalancer not found. Falling back to localhost."
+            echo "DYNAMIC_API_URL=http://localhost:5000" >> $GITHUB_ENV
+          else
+            echo "Found live backend at $BACKEND_HOST"
+            echo "DYNAMIC_API_URL=http://$BACKEND_HOST" >> $GITHUB_ENV
+          fi
+      
+      - name: Build Application
+        run: docker build --tag=mp-frontend:latest --build-arg=REACT_APP_MOVIE_API_URL=${{ env.DYNAMIC_API_URL }} .
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -87,9 +105,6 @@ jobs:
           docker tag mp-frontend:latest $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
           docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
           docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:latest
-
-      - name: Update Kubeconfig
-        run: aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name ${{ env.AWS_EKS_CLUSTER_NAME }}
 
       - name: Deploy to EKS
         env:
