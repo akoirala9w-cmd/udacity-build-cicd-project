@@ -1,0 +1,26 @@
+name: 'Setup Backend Environment'
+description: 'Setup Python 3.10, install pipenv, and install dependencies'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+        cache: 'pipenv'
+        cache-dependency-path: starter/backend/Pipfile.lock
+
+    - name: Install pipenv
+      run: |
+        pip install pipenv
+        pipenv install --dev flake8
+      shell: bash
+      working-directory: starter/backend
+
+    
+    - name: Install dependencies
+      run: pipenv install
+      shell: bash
+      working-directory: starter/backend
+      

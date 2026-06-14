@@ -1,11 +1,6 @@
 name: Backend Continuous Integration
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'starter/backend/**'
   pull_request:
     branches:
       - main
@@ -25,20 +20,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-          cache: 'pipenv'
-          cache-dependency-path: starter/backend/Pipfile.lock
-
-      - name: Install pipenv
-        run: |
-          pip install pipenv
-          pipenv install --dev flake8
-      
-      - name: Install dependencies
-        run: pipenv install
+      - name: Setup environment
+        uses: ./.github/actions/setup-backend
       
       - name: Run Linter
         run: pipenv run lint
@@ -54,18 +37,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-          cache: 'pipenv'
-          cache-dependency-path: starter/backend/Pipfile.lock
-
-      - name: Install pipenv
-        run: pip install pipenv
-
-      - name: Install dependencies
-        run: pipenv install
+      - name: Setup environment
+        uses: ./.github/actions/setup-backend
 
       - name: Run Tests
         run: pipenv run test
@@ -82,18 +55,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-          cache: 'pipenv'
-          cache-dependency-path: starter/backend/Pipfile.lock
-
-      - name: Install pipenv
-        run: pip install pipenv
-
-      - name: Install dependencies
-        run: pipenv install
+      - name: Setup environment
+        uses: ./.github/actions/setup-backend
 
       - name: Build Application
         run: pipenv run python -m compileall .
